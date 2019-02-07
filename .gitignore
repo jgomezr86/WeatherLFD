@@ -1,0 +1,9 @@
+# Hidden files
+.DS_Store
+
+# Environment
+.idea
+*.iml
+
+# Compiled
+/out
