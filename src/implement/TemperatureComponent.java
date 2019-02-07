@@ -72,7 +72,13 @@ public class TemperatureComponent
 
    @Override
    public void handleEvent(JSONObject jo) {
-      //TODO:
+
+      if (!"twitter.status".equals(jo.getString("source") + '.' + jo.getString("type"))) return;
+
+      throw new RuntimeException("Not supported yet");
+      //TODO: Detectar si hashtag del comando
+      // – Consultar temeperatura del API
+      // – Responser con twit
    }
 
    @Override
@@ -81,9 +87,9 @@ public class TemperatureComponent
       switch (jo.getString("command")) {
 
          case CMD_DISABLE:
-            boolean wasEnabled = stop();
-            return response(wasEnabled,
-               wasEnabled
+            boolean enabled = stop();
+            return response(enabled,
+               enabled
                   ? "Temporizador deshabilitado"
                   : "Tarea no esta corriendo"
             );
@@ -99,6 +105,7 @@ public class TemperatureComponent
 
          case CMD_TIMER:
             //TODO guardar el número de la durada de iteración
+            //
             return null;
       }
 
