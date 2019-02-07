@@ -1,47 +1,51 @@
 # Componente "Tiempo"
 
-Este componente proporciona una manera de comprobar y notificar la temperatura actual, en tiempo real de Sabadell. Tiene varios comandos de configuración (ref.
-_[Eventos](#tipos-de-comandos)_) y algunas dependencias vitales (ref. _[Dependencias](#dependencias)_).
+Este componente proporciona una manera de comprobar y notificar la temperatura actual, en tiempo real de Sabadell. Tiene varios comandos de configuración (ref. _[Eventos](#tipos-de-comandos)_) y algunas dependencias vitales (ref. _[Dependencias](#dependencias)_).
 
 
 ## Estructura general
 
-La estructura general de comandos JSONObject, utilizada para la comunicación con el componente.
+### Comandos
+La estructura general de comandos JSONObject, utilizados para la comunicación con el componente.
 
 
+Comando:
+```javascript
+{
+	"command": "weather.{tipo}"
+}
 ```
-EVENTO:
-{
-	source (String):    weather
-	type (String):      {tipo}
-}
+(Otros campos según el comando)
 
-RESPUESTA CORRECTA:
-{
-	success (boolean):  true
-	data (String):      mensaje de respuesta
-}
 
-RESPUESTA INCORRECTA:
+Respuesta correcta:
+```javascript
 {
-	success (boolean):  false
-	error (String):     mensaje de error
+	"success": true,
+	"data": "?" // Mensaje de respuesta
+}
+```
+
+Respuesta incorrecta:
+```javascript
+{
+	"success": false,
+	"data": "?" // Mensaje de error
 }
 ```
 
 ## Tipos de comandos
 
-Diferentes tipos de eventos que emite el componente. (ref. apartado _[Estructura general](#estructura-general)_)
+Diferentes tipos de commandos que controlan el componente. (ref. apartado _[Estructura general](#estructura-general)_)
 
 ### Activar
 
-Evento que activa la notificación programada de cambios de temperatura. Utiliza el tiempo especificado por defecto o con comando (ref. apartado _[Tiempo](#tiempo)_)
+Comando que activa la notificación programada de cambios de temperatura. Utiliza el tiempo especificado por defecto o con comando (ref. apartado _[Tiempo](#tiempo)_)
 
-```
-EJEMPLO:
+Ejemplo:
+```json
 {
-	source (String): 	weather
-	type (String): 		enable
+	"command": "weather.enable"
 }
 ```
 
@@ -49,11 +53,10 @@ EJEMPLO:
 
 Evento que desactiva la notificación programada. Utiliza el tiempo especificado por defecto o con comando (ref. apartado _[Tiempo](#tiempo)_) para finalizar el componente. 
 
-```
-EJEMPLO:
+Ejemplo:
+```json
 {
-	source (String): 	weather
-	type (String): 		disable
+	"command": "weather.disable"
 }
 ```
 
@@ -61,12 +64,11 @@ EJEMPLO:
 
 Evento utilizado para notificar el tiempo de refresco de la comprobación de la temperatura  (ref. apartado _[Dependencias](#dependencias)_).
 
-```
-EJEMPLO:
+Ejemplo:
+```javascript
 {
-	source (String): 	weather
-	type (String): 		timer
-	time (Integer): 	tiempo de refresco
+	"command": "weather.settime",
+	"time": 1 // Tiempo de actualización
 }
 ```
 
