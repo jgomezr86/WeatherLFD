@@ -31,7 +31,6 @@ public class TemperatureComponent
    private final String CMD_ENABLE = CMD_NAME + ".enable";
    private final String CMD_DISABLE = CMD_NAME + ".disable";
    private final String STORAGE_KEY = "temperature-component";
-   private final String API_URL = "https://api.darksky.net/forecast/1a6121be33f01c8c16aee7cfd9cfd50c/41.548630,2.107440?units=si&lang=ca&exclude=minutely,hourly,daily,alerts,flags";
 
    /* Ajustes predeterminados (guardados en `storage` component) */
    private static final JSONObject DEFAULTS = new JSONObject()
@@ -192,7 +191,14 @@ public class TemperatureComponent
       do {
          try {
             ++attempt;
-            URL url = new URL(API_URL);
+            URL url = new URL("https://api.darksky.net/forecast/" + // URL base del API
+               "1a6121be33f01c8c16aee7cfd9cfd50c" + // Token de usuario de prueba
+               "/41.548630,2.107440" + // Coordenadas de Sabadell
+               // Ajustes
+               "?units=si" + // Unidades
+               "&lang=ca" + // Idioma
+               "&exclude=minutely,hourly,daily,alerts,flags" // Información que no utilizamos
+            );
 
             try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
 
