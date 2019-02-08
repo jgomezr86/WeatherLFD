@@ -4,18 +4,18 @@ package implement;
 import commander.*;
 
 /* JSON */
+import org.json.JSONException;
 import org.json.JSONObject;
-import test.RemoteWelcomeTest;
 
 /* Java */
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.TimerTask;
 import java.util.Timer;
+import java.util.List;
+import java.net.URL;
 
 /**
  * @author Anton Stasyuk
@@ -109,9 +109,16 @@ public class TemperatureComponent
             }
 
          case CMD_TIMER:
-            //TODO guardar el número de la durada de iteración
-            //
-            return null;
+            try {
+               if (!setStoredData(DEFAULTS.put("period", jo.getInt("time"))))
+                  return response(false, "Ha ocurrido un error");
+
+               start();
+               return response(true, "Tiempo modificado con éxito");
+            }
+            catch (JSONException e) {
+               return response(false, "Elemento con clave `time` no existe o tiene formato incorrecto");
+            }
       }
 
       return response(false, "Comando no existe");
@@ -119,19 +126,25 @@ public class TemperatureComponent
 
    /* Helpers --------------------------------------------------------------------------------------------------------*/
 
+   /**
+    * Inicializa el temporizador para ejecutar la tarea {@see WeatherTask} periódicamente
+    */
    private void start() {
       stop();
-      int period = 0;
-
-      //TODO: Sergio ->
-      // – Cargar ajustes (storage), asignar a period
-      // – Temperature = Float.MIN_VALUE (storage)
-      // (tener en cuenta los posibles errores)
 
       (this.timer = new Timer())
-         .schedule(new WeatherTask(), 0, TimeUnit.MINUTES.toMillis(period));
+         .schedule(
+            new WeatherTask(), // Tarea que se ejecuta
+            0, // Tiempo que espera en la primera iteración
+            TimeUnit.MINUTES.toMillis(
+               getStoredData().getInt("period") // Tiempo a esperar entre las iteraciones
+            ));
    }
 
+   /**
+    * Para el timer que ejecuta la tarea periódicamente
+    * @return {@code false} si estaba parado, {@code true} en caso contrario
+    */
    private boolean stop() {
 
       if (this.timer == null) return false;
@@ -153,31 +166,55 @@ public class TemperatureComponent
    }
 
    /**
-    * @return La temperatura actual en las coordenadas especificadas en la URL del API
-    * @throws InterruptedException En caso de que no se ha podido consultar la temperatura
+    * @param data El objeto para guardar en storage
+    * @return {@code true} si se ha ejecutado con éxito,{@code false} en caso contrario
     */
-   private int getCurrentTemperature() throws InterruptedException {
-      try {
-         URL url = new URL(API_URL);
+   private boolean setStoredData(JSONObject data) {
 
-         try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
-
-            StringBuilder response = new StringBuilder();
-            String line;
-
-            while (null != (line = br.readLine()))
-               response.append(line);
-
-            return new JSONObject(response.toString())
-               .getJSONObject("currently")
-               .getInt("temperature");
-         }
-      }
-      catch (Exception ignore) {
-      }
-      throw new InterruptedException();
+      return manager.execute(new JSONObject()
+         .put("command", "storage.save")
+         .put("key", STORAGE_KEY)
+         .put("data", data)
+      )
+         .getBoolean("success");
    }
 
+   /**
+    * @return La temperatura actual en las coordenadas especificadas en la URL del API
+    * @throws Exception En caso de que no se ha podido consultar la temperatura
+    */
+   private JSONObject getCurrent() throws Exception {
+      int attempt = 0;
+      do {
+         try {
+            ++attempt;
+            URL url = new URL(API_URL);
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+               StringBuilder response = new StringBuilder();
+               String line;
+
+               while (null != (line = br.readLine()))
+                  response.append(line);
+
+               return new JSONObject(response.toString())
+                  .getJSONObject("currently");
+            }
+         }
+         catch (Exception ignore) {
+            Thread.sleep(3000);
+         }
+      } while (attempt <= 2);
+      throw new Exception();
+   }
+
+   /**
+    * Genera una respuesta del componente
+    * @param success Tipo de la respuesta (positiva {@code true}, negativa {@code false})
+    * @param message Texto descriptivo
+    * @return {"success":true, "message": "..."} o {"success":false, "error": "..."}
+    */
    private JSONObject response(boolean success, String message) {
       return new JSONObject()
          .put(success ? "data" : "error", message)
