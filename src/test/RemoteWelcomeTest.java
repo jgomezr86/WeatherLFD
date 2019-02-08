@@ -9,7 +9,7 @@ import commander.ManagerFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import implement.WelcomeComponent;
+import implement.TemperatureComponent;
 import org.json.JSONObject;
 
 /**
@@ -43,7 +43,7 @@ public class RemoteWelcomeTest implements IEventListener {
    public static void main(String[] args) {
 
       // create component (only for testing)
-      WelcomeComponent comp = new WelcomeComponent();
+      TemperatureComponent comp = new TemperatureComponent();
 
       try (IManager mgr = ManagerFactory.getManager("146.255.96.104")) {
 

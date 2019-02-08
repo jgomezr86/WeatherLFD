@@ -1,18 +1,18 @@
 package implement;
 
 /* Commander */
-import commander.IEventListener;
-import commander.IInitManager;
-import commander.IComponent;
-import commander.IManager;
+import commander.*;
 
 /* JSON */
 import org.json.JSONObject;
+import test.RemoteWelcomeTest;
 
 /* Java */
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.TimerTask;
 import java.util.Timer;
@@ -32,7 +32,7 @@ public class TemperatureComponent
    private final String CMD_ENABLE = CMD_NAME + ".enable";
    private final String CMD_DISABLE = CMD_NAME + ".disable";
    private final String STORAGE_KEY = "temperature-component";
-   private final String API_URL = "https://api.darksky.net/forecast/1a6121be33f01c8c16aee7cfd9cfd50c/41.548630,2.107440?units=si&lang=es&exclude=minutely,hourly,daily,alerts,flags";
+   private final String API_URL = "https://api.darksky.net/forecast/1a6121be33f01c8c16aee7cfd9cfd50c/41.548630,2.107440?units=si&lang=ca&exclude=minutely,hourly,daily,alerts,flags";
 
    /* Ajustes predeterminados (guardados en `storage` component) */
    private static final JSONObject DEFAULTS = new JSONObject()
@@ -73,10 +73,17 @@ public class TemperatureComponent
 
       if (!"twitter.status".equals(jo.getString("source") + '.' + jo.getString("type"))) return;
 
-      throw new RuntimeException("Not supported yet");
-      //TODO: Detectar si hashtag del comando
-      // – Consultar temeperatura del API
-      // – Responser con twit
+      JSONObject status = jo.getJSONObject("status");
+      List<Object> hashtags = status
+         .getJSONArray("hashtags")
+         .toList();
+
+      for (Object hashtag : hashtags)
+         if (hashtag.equals("QueTemperaturaLFD")) {
+            //TODO enviar twit respuesta con la temperatura
+            break;
+         }
+
    }
 
    @Override
@@ -132,14 +139,21 @@ public class TemperatureComponent
       return true;
    }
 
+   /**
+    * @return JSONObject que tiene la última temperatura y el periodo de ejecución de la tarea. En caso que no exista
+    * devuelve los parámetros predeterminados
+    */
    private JSONObject getStoredData() {
 
-      //TODO: Javier – leer, si no existe guardar los datos predeterminados (DEFAULTS), y devolver leído/guardado
-      return null;
+      return manager.execute(new JSONObject()
+         .put("command", "storage.loadorsave")
+         .put("key", STORAGE_KEY)
+         .put("data", DEFAULTS)
+      );
    }
 
    /**
-    * @return La temperatura actual
+    * @return La temperatura actual en las coordenadas especificadas en la URL del API
     * @throws InterruptedException En caso de que no se ha podido consultar la temperatura
     */
    private int getCurrentTemperature() throws InterruptedException {
