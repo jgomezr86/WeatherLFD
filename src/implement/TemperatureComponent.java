@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import java.util.concurrent.TimeUnit;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.TimerTask;
 import java.util.Timer;
 import java.util.List;
@@ -80,10 +79,15 @@ public class TemperatureComponent
 
       for (Object hashtag : hashtags)
          if (hashtag.equals("QueTemperaturaLFD")) {
-            //TODO enviar twit respuesta con la temperatura
+            //TODO: enviar mensaje
+            /*manager.execute(new JSONObject()
+               .put("token", TOKEN)
+               .put("command", "twitter.post")
+               .put("status_id", status.getLong("status_id"))
+               .put("status", "@" + status.getString("user") + "Que la fuerza te acompañe mi joven padawan!!!")
+            );*/
             break;
          }
-
    }
 
    @Override
@@ -209,6 +213,11 @@ public class TemperatureComponent
       throw new Exception();
    }
 
+   private JSONObject renderTwitterMessage(JSONObject data) {
+      if (data == null) data = getStoredData();
+      return null;
+   }
+
    /**
     * Genera una respuesta del componente
     * @param success Tipo de la respuesta (positiva {@code true}, negativa {@code false})
@@ -226,9 +235,16 @@ public class TemperatureComponent
 
       @Override
       public void run() {
-         //TODO: Sergio – Leer la temperatura guardada en storage
-         //TODO: Anton – Leer los datos de la página web, si han cambiado ->
-         //TODO: Javier – Enviar un evento con el twit de que ha cambiado la temperatura
+         try {
+            JSONObject storage = getStoredData();
+            JSONObject current = getCurrent();
+         }
+         catch (Exception ignore) {
+         }
+
+         //TODO: Leer la temperatura guardada en storage
+         //TODO: Leer los datos de la página web, si han cambiado ->
+         //TODO: Enviar un evento con el twit de que ha cambiado la temperatura
       }
    }
 }
