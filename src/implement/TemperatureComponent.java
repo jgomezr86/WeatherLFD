@@ -10,6 +10,9 @@ import commander.IManager;
 import org.json.JSONObject;
 
 /* Java */
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.TimerTask;
 import java.util.Timer;
@@ -23,12 +26,13 @@ public class TemperatureComponent
    implements IInitManager, IComponent, IEventListener {
 
    /* Nombre de componente y sus comandos */
-   private static final String TOKEN = "46946318Y";
-   private static final String CMD_NAME = "temperature";
-   private static final String CMD_TIMER = CMD_NAME + ".timer";
-   private static final String CMD_ENABLE = CMD_NAME + ".enable";
-   private static final String CMD_DISABLE = CMD_NAME + ".disable";
-   private static final String STORAGE_KEY = "temperature-component";
+   private final String TOKEN = "46946318Y";
+   private final String CMD_NAME = "temperature";
+   private final String CMD_TIMER = CMD_NAME + ".timer";
+   private final String CMD_ENABLE = CMD_NAME + ".enable";
+   private final String CMD_DISABLE = CMD_NAME + ".disable";
+   private final String STORAGE_KEY = "temperature-component";
+   private final String API_URL = "https://api.darksky.net/forecast/1a6121be33f01c8c16aee7cfd9cfd50c/41.548630,2.107440?units=si&lang=es&exclude=minutely,hourly,daily,alerts,flags";
 
    /* Ajustes predeterminados (guardados en `storage` component) */
    private static final JSONObject DEFAULTS = new JSONObject()
@@ -53,12 +57,6 @@ public class TemperatureComponent
          CMD_ENABLE,
          CMD_TIMER
       };
-   }
-
-   private JSONObject getData() {
-
-      //TODO: Javier – leer, si no existe guardar los datos predeterminados (DEFAULTS), y devolver leído/guardado
-      return null;
    }
 
    /* Setters --------------------------------------------------------------------------------------------------------*/
@@ -132,6 +130,38 @@ public class TemperatureComponent
       if (this.timer == null) return false;
       this.timer.cancel();
       return true;
+   }
+
+   private JSONObject getStoredData() {
+
+      //TODO: Javier – leer, si no existe guardar los datos predeterminados (DEFAULTS), y devolver leído/guardado
+      return null;
+   }
+
+   /**
+    * @return La temperatura actual
+    * @throws InterruptedException En caso de que no se ha podido consultar la temperatura
+    */
+   private int getCurrentTemperature() throws InterruptedException {
+      try {
+         URL url = new URL(API_URL);
+
+         try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while (null != (line = br.readLine()))
+               response.append(line);
+
+            return new JSONObject(response.toString())
+               .getJSONObject("currently")
+               .getInt("temperature");
+         }
+      }
+      catch (Exception ignore) {
+      }
+      throw new InterruptedException();
    }
 
    private JSONObject response(boolean success, String message) {
