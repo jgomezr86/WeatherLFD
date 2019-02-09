@@ -6,6 +6,7 @@ import commander.*;
 /* JSON */
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 /* Java */
 import java.util.concurrent.TimeUnit;
@@ -25,7 +26,6 @@ public class TemperatureComponent
    implements IInitManager, IComponent, IEventListener {
 
    /* Nombre de componente y sus comandos */
-   private final String TOKEN = "46946318Y";
    private final String CMD_NAME = "temperature";
    private final String CMD_TIMER = CMD_NAME + ".timer";
    private final String CMD_ENABLE = CMD_NAME + ".enable";
@@ -35,7 +35,9 @@ public class TemperatureComponent
    /* Ajustes predeterminados (guardados en `storage` component) */
    private static final JSONObject DEFAULTS = new JSONObject()
       .put("temperature", Float.MIN_VALUE)
-      .put("period", 15);
+      .put("summary", "")
+      .put("period", 15)
+      .put("icon", "");
 
    /* Recursos */
    private IManager manager;
@@ -78,13 +80,18 @@ public class TemperatureComponent
 
       for (Object hashtag : hashtags)
          if (hashtag.equals("QueTemperaturaLFD")) {
-            //TODO: enviar mensaje
-            /*manager.execute(new JSONObject()
-               .put("token", TOKEN)
-               .put("command", "twitter.post")
-               .put("status_id", status.getLong("status_id"))
-               .put("status", "@" + status.getString("user") + "Que la fuerza te acompañe mi joven padawan!!!")
-            );*/
+            try {
+               manager
+                  .execute(
+                     renderTwitterMessage(
+                        getCurrent()
+                           .put("status_id", status.get("status_id"))
+                           .put("user", status.get("user"))
+                     )
+                  );
+            }
+            catch (Exception ignore) {
+            }
             break;
          }
    }
@@ -220,8 +227,34 @@ public class TemperatureComponent
    }
 
    private JSONObject renderTwitterMessage(JSONObject data) {
-      if (data == null) data = getStoredData();
-      return null;
+
+      JSONObject response = new JSONObject()
+         .put("status", String.format("%s, %d grados", data.getString("summary"), data.getInt("temperature")))
+         .put("command", "twitter.post")
+         .put("token", "46946318Y");
+
+      // TODO: añadir imagen
+      /*
+      if (data.has("icon"))
+      response.put("media", new JSONArray()
+         .put(new JSONObject()
+            .put("content", "") //TODO: convertir Base64
+            .put("name", "") // nombre del archivo
+         )
+      );*/
+
+      // Añadiendo usuario si es una respuesta a twit
+      if (data.has("user") && data.has("status_id"))
+         response
+            .put("status_id", data.get("status_id"))
+            .put("status",
+               String.format("@%s %n%s",
+                  data.getString("user"),
+                  response.getString("status")
+               )
+            );
+
+      return response;
    }
 
    /**
@@ -247,7 +280,6 @@ public class TemperatureComponent
          }
          catch (Exception ignore) {
          }
-
          //TODO: Leer la temperatura guardada en storage
          //TODO: Leer los datos de la página web, si han cambiado ->
          //TODO: Enviar un evento con el twit de que ha cambiado la temperatura

@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import implement.TemperatureComponent;
+import implement.WelcomeComponent;
 import org.json.JSONObject;
 
 /**
@@ -53,7 +54,7 @@ public class RemoteWelcomeTest implements IEventListener {
          mgr.registerListener(test);
 
          // wait for event, some time
-         sleep(10000);
+         sleep(30000);
 
          // done
          mgr.unregisterListener(test);

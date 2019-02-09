@@ -71,7 +71,7 @@ public class WelcomeComponent
             .put("token", TOKEN)
             .put("command", "twitter.post")
             .put("status_id", status.getLong("status_id"))
-            .put("status", "@" + status.getString("user") + "Que la fuerza te acompañe mi joven padawan!!!")
+            .put("status", "@" + status.getString("user") + " Que la fuerza te acompañe mi joven padawan!!!")
          );
    }
 
