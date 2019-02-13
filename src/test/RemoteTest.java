@@ -11,19 +11,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import implement.TemperatureComponent;
-import implement.WelcomeComponent;
 import org.json.JSONObject;
 
 /**
  * @author julian
  */
-public class RemoteWelcomeTest implements IEventListener {
+public class RemoteTest implements IEventListener {
 
-   private static final Logger LOGGER = Logger.getLogger(RemoteWelcomeTest.class.getName());
+   private static final Logger LOGGER = Logger.getLogger(RemoteTest.class.getName());
 
    private IComponent component;
 
-   public RemoteWelcomeTest(IComponent component) {
+   public RemoteTest(IComponent component) {
       this.component = component;
    }
 
@@ -51,13 +50,10 @@ public class RemoteWelcomeTest implements IEventListener {
 
          // init
          comp.setManager(mgr);
-         RemoteWelcomeTest test = new RemoteWelcomeTest(comp);
+         RemoteTest test = new RemoteTest(comp);
          mgr.registerListener(test);
 
-         comp.execute(new JSONObject()
-            .put("command", "storage.remove")
-            .put("key", "temperature-component")
-         );
+         comp.start();
 
          // wait for event, some time
          sleep(TimeUnit.MINUTES.toMillis(2));

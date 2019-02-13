@@ -7,9 +7,9 @@ import static com.google.common.io.ByteStreams.*;
 import commander.*;
 
 /* JSON */
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 /* Java */
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ public class TemperatureComponent
 
    /* Ajustes predeterminados (guardados en `storage` component) */
    private static final JSONObject DEFAULTS = new JSONObject()
-      .put("temperature", Float.MIN_VALUE)
+      .put("temperature", Integer.MIN_VALUE)
       .put("summary", "")
       .put("period", 1)
       .put("icon", "");
@@ -143,8 +143,20 @@ public class TemperatureComponent
    /**
     * Inicializa el temporizador para ejecutar la tarea {@see WeatherTask} periódicamente
     */
-   private void start() {
+   public void start() {
       stop();
+
+      // Limpiando los datos anteriores
+      try {
+         JSONObject current = getCurrent();
+         setStoredData(DEFAULTS
+            .put("temperature", current.getInt("temperature"))
+            .put("summary", current.getString("summary"))
+            .put("icon", current.getString("icon"))
+         );
+      }
+      catch (Exception ignore) {
+      }
 
       (this.timer = new Timer())
          .schedule(
@@ -172,11 +184,11 @@ public class TemperatureComponent
     */
    private JSONObject getStoredData() {
 
-      return manager.execute(new JSONObject()
+      return (JSONObject) manager.execute(new JSONObject()
          .put("command", "storage.loadorsave")
          .put("key", STORAGE_KEY)
          .put("data", DEFAULTS)
-      );
+      ).get("data");
    }
 
    /**
@@ -233,10 +245,13 @@ public class TemperatureComponent
    private JSONObject renderTwitterMessage(JSONObject data) {
 
       JSONObject response = new JSONObject()
-         .put("status", String.format("%s, %d ºC", data.getString("summary"), data.getInt("temperature")))
+         .put("status", String.format(
+            "Temperatura actual: %dºC, %s",
+            data.getInt("temperature"),
+            data.getString("summary")
+         ))
          .put("command", "twitter.post")
          .put("token", "46946318Y");
-
 
       File image = new File("data/" + data.getString("icon") + ".jpg");
 
@@ -263,13 +278,11 @@ public class TemperatureComponent
          response
             .put("status_id", data.get("status_id"))
             .put("status",
-               String.format("@%s %n%s",
+               String.format("@%s %n%s %n #LaFerreriaDAM",
                   data.getString("user"),
                   response.getString("status")
                )
             );
-
-      System.out.println(response);
 
       return response;
    }
@@ -296,22 +309,28 @@ public class TemperatureComponent
             JSONObject current = getCurrent();
             boolean changed = false;
 
-            if (storage.getFloat("temperature") != current.getFloat("temperature")) {
-               storage.put("temperature", current.getFloat("temperature"));
+            if (storage.getInt("temperature") != current.getInt("temperature")) {
+               storage.put("temperature", current.getInt("temperature"));
                changed = true;
             }
 
-            if (storage.getString("summary").equals(current.getString("summary"))) {
+            if (!storage.getString("summary").equals(current.getString("summary"))) {
                storage.put("summary", current.getString("summary"));
                changed = true;
             }
 
+            if (!changed) {
+               System.out.println("No ha cambiado...");
+               System.out.println(storage.getInt("temperature"));
+               System.out.println(storage.getInt("summary"));
+            }
             if (changed)
                if (setStoredData(storage))
                   manager
                      .execute(
                         renderTwitterMessage(storage)
                      );
+
          }
          catch (Exception ignore) {
          }
