@@ -319,18 +319,12 @@ public class TemperatureComponent
                changed = true;
             }
 
-            if (!changed) {
-               System.out.println("No ha cambiado...");
-               System.out.println(storage.getInt("temperature"));
-               System.out.println(storage.getInt("summary"));
-            }
             if (changed)
                if (setStoredData(storage))
                   manager
                      .execute(
                         renderTwitterMessage(storage)
                      );
-
          }
          catch (Exception ignore) {
          }
