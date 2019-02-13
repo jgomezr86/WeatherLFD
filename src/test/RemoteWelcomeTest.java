@@ -6,6 +6,7 @@ import commander.IEventListener;
 import commander.IManager;
 import commander.ManagerFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,8 +54,13 @@ public class RemoteWelcomeTest implements IEventListener {
          RemoteWelcomeTest test = new RemoteWelcomeTest(comp);
          mgr.registerListener(test);
 
+         comp.execute(new JSONObject()
+            .put("command", "storage.remove")
+            .put("key", "temperature-component")
+         );
+
          // wait for event, some time
-         sleep(30000);
+         sleep(TimeUnit.MINUTES.toMillis(2));
 
          // done
          mgr.unregisterListener(test);
