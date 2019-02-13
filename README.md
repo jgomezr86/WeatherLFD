@@ -71,6 +71,28 @@ Ejemplo:
 	"time": 1 // Tiempo de actualización
 }
 ```
+## Tipos de Eventos
+
+Existen dos clases de eventos controlados unos recibidos por IEventListener commandos (ref. apartado _[Estructura general](#estructura-general)_) y solicitud de temperatura e otro generado por una fuente externa, darksky.net (ref. apartado _[Dependencias](#dependencias)_).
+
+### IEventListener commandos 
+
+Todos los comandos explicados en los apartados Estructura general y Tipos de Commandos.
+
+### IEventListener Hashtag #laferreriadam
+
+Evento recibido por IEventListener que envía un Tweet, con la temperatura y el estado del cielo de Sabadell, al usuario emisor del Tweet a  #laferreriadam con el hashtag #quetemperaturaLFD (ref. apartado _[Tiempo](#tiempo)_)
+
+Ejemplo:
+```json
+{
+	"status": "hashtags"
+}
+```
+
+### darksky.net canvio de temperatura
+
+Cuando tras realizar una comprobación de la temperatura por la API de darksky.net (ref. apartado _[Dependencias](#dependencias)_), según el tiempo establecido por defecto 15 minutos o la especificada por el comando "weather.settime" , de haber un cambio se envía un Tweet a #laferreriadam.
 
 ## Dependencias
 
